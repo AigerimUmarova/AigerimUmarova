@@ -1,0 +1,18 @@
+explain
+with teachers_cost as
+(
+select distinct id_teacher, 
+case when language_group = 'rus' then 900 else 1500 end as class_cost
+from skyeng_db.teachers
+)
+select date_trunc('month', class_start_datetime) as class_month,
+sum(class_cost) as total_classes_cost, count(id_class) as classes_count,
+sum(class_cost)::float / count(id_class) as avg_cost
+from skyeng_db.classes
+left join teachers_cost
+on teachers_cost.id_teacher = skyeng_db.classes.id_teacher
+where class_status in ('success', 'failed_by_teacher') -- урок списан с баланса
+and class_start_datetime between '2016-01-01' and '2016-12-31' -- в 2016 году
+and class_type != 'trial' -- не вводный урок
+group by 1
+order by 1
