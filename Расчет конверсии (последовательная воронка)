@@ -1,0 +1,19 @@
+select 
+    name_city
+    , name_tariff
+    , count(case when id_driver is not null then '1' else null end)/count(id_order)::float as Order_2_Offer
+    , count(case when assign_time is not null then '1' else null end)/count(case when id_driver is not null then '1' else null end)::float as Offer_2_Assign
+    , count(case when arrive_to_client_time is not null then '1' else null end)/count(case when assign_time is not null then '1' else null end)::float as Assign_2_Arrival
+    , count(case when order_finish_time is not null then '1' else null end)/count(case when arrive_to_client_time is not null then '1' else null end)::float as Arrival_2_Ride
+    , count(case when order_finish_time is not null then '1' else null end)/count(id_order)::float as Order_2_Ride
+From skytaxi.order_list l
+    inner join skytaxi.city_dict c
+        on l.id_city = c.id_city
+    inner join skytaxi.tariff_dict t
+        on l.id_tariff = t.id_tariff
+where date_trunc('month', order_time) = '2021-07-01'
+    and name_city in ('Москва', 'Санкт-Петербург')
+    and name_tariff in ('Эконом', 'Комфорт')
+Group by name_city
+    , name_tariff
+limit 100
